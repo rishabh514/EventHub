@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Event Hub - Discover DTU Societies</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React and Babel for in-browser JSX transformation -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* Applying the primary font and Spotify-like theme colors */
+        body {
+            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom scrollbar for a more integrated look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #181818;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a4a4a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-[#121212]">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Helper for class names
+        const cx = (...classes) => classes.filter(Boolean).join(' ');
+
+        // --- MOCK DATA ---
+        // This data simulates what would come from a backend API.
+        const categories = [
+            "All", "Consulting & Business", "Social Impact", "Performing Arts", "Tech & Coding", "Core Engineering"
+        ];
+
+        const mockSocieties = [
+            { id: 1, name: "IEEE DTU", category: "Tech & Coding", description: "Advancing technology for humanity.", logo: "https://placehold.co/100x100/282828/FFFFFF?text=IEEE", banner: "https://placehold.co/400x150/1DB954/1DB954?text=", memberCount: 300, councilCount: 20 },
+            { id: 2, name: "Enactus DTU", category: "Social Impact", description: "Entrepreneurial action for others.", logo: "https://placehold.co/100x100/282828/FFFFFF?text=Enactus", banner: "https://placehold.co/400x150/1DB954/1DB954?text=", memberCount: 150, councilCount: 15 },
+            { id: 3, name: "Pratibimb", category: "Performing Arts", description: "The Dramatics Society of DTU.", logo: "https://placehold.co/100x100/282828/FFFFFF?text=Pratibimb", banner: "https://placehold.co/400x150/1DB954/1DB954?text=", memberCount: 120, councilCount: 10 },
+            { id: 4, name: "The Consulting Club", category: "Consulting & Business", description: "Fostering a culture of consulting.", logo: "https://placehold.co/100x100/282828/FFFFFF?text=TCC", banner: "https://placehold.co/400x150/1DB954/1DB954?text=", memberCount: 80, councilCount: 8 },
+            { id: 5, name: "ASME DTU", category: "Core Engineering", description: "ASME Student Section.", logo: "https://placehold.co/100x100/282828/FFFFFF?text=ASME", banner: "https://placehold.co/400x150/1DB954/1DB954?text=", memberCount: 200, councilCount: 18 },
+            { id: 6, name: "Developer Student Clubs", category: "Tech & Coding", description: "Google Developer Student Clubs.", logo: "https://placehold.co/100x100/282828/FFFFFF?text=GDSC", banner: "https://placehold.co/400x150/1DB954/1DB954?text=", memberCount: 250, councilCount: 22 },
+            { id: 7, name: "Madhurima", category: "Performing Arts", description: "The Music Society of DTU.", logo: "https://placehold.co/100x100/282828/FFFFFF?text=Madhurima", banner: "https://placehold.co/400x150/1DB954/1DB954?text=", memberCount: 90, councilCount: 12 },
+            { id: 8, name: "DTU-AUV", category: "Core Engineering", description: "Autonomous Underwater Vehicles.", logo: "https://placehold.co/100x100/282828/FFFFFF?text=AUV", banner: "https://placehold.co/400x150/1DB954/1DB954?text=", memberCount: 70, councilCount: 9 },
+        ];
+        
+        // --- ICONS ---
+        // Using inline SVG for icons to keep it self-contained.
+        const HomeIcon = ({ className }) => <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 12h3v9h6v-6h4v6h6v-9h3L12 2z" /></svg>;
+        const SearchIcon = ({ className }) => <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /></svg>;
+        const LibraryIcon = ({ className }) => <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H8V8h4V4h2v4h4v2z" /></svg>;
+        const CalendarIcon = ({ className }) => <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z" /></svg>;
+        const HeartIcon = ({ className, isLiked }) => <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>;
+        const AgendaIcon = ({ className }) => <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>;
+        const UsersIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm6-11a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>;
+        const BriefcaseIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>;
+
+
+        // --- COMPONENTS ---
+
+        function Sidebar({ activeSection, onSectionChange }) {
+            const navItems = [
+                { id: 'home', icon: HomeIcon, label: 'Home' },
+                { id: 'search', icon: SearchIcon, label: 'Search' },
+                { id: 'calendar', icon: CalendarIcon, label: 'Event Calendar' },
+            ];
+            const libraryItems = [
+                { id: 'library', icon: LibraryIcon, label: 'Your Library' },
+                { id: 'favorites', icon: HeartIcon, label: 'Liked Societies' },
+                { id: 'agenda', icon: AgendaIcon, label: 'My Agenda' },
+            ];
+
+            const NavLink = ({ item }) => (
+                <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); onSectionChange(item.id); }}
+                    className={cx(
+                        'flex items-center space-x-4 px-6 py-2 rounded-md transition-colors duration-200',
+                        activeSection === item.id ? 'text-white bg-[#282828]' : 'text-[#b3b3b3] hover:text-white'
+                    )}
+                >
+                    <item.icon className="h-6 w-6" />
+                    <span className="font-bold">{item.label}</span>
+                </a>
+            );
+
+            return (
+                <div className="hidden md:flex flex-col w-64 bg-black p-2 space-y-2">
+                    <div className="bg-[#121212] rounded-lg p-2 space-y-1">
+                        {navItems.map(item => <NavLink key={item.id} item={item} />)}
+                    </div>
+                    <div className="bg-[#121212] rounded-lg p-2 space-y-1 flex-grow">
+                        {libraryItems.map(item => <NavLink key={item.id} item={item} />)}
+                    </div>
+                    <div className="p-4 text-xs text-[#b3b3b3]">
+                        <p>&copy; 2025 Event Hub</p>
+                    </div>
+                </div>
+            );
+        }
+
+        function Header({ searchQuery, onSearchChange, onLogin, onRegister }) {
+            return (
+                <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-[#121212] bg-opacity-80 backdrop-blur-sm">
+                    <div className="relative w-full max-w-xs">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <SearchIcon className="h-5 w-5 text-[#b3b3b3]" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search for societies..."
+                            value={searchQuery}
+                            onChange={(e) => onSearchChange(e.target.value)}
+                            className="w-full bg-[#282828] text-white placeholder-[#b3b3b3] border border-transparent rounded-full py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
+                        />
+                    </div>
+                    <div className="flex items-center space-x-4">
+                        <button onClick={onRegister} className="text-[#b3b3b3] font-bold hover:text-white hover:scale-105 transition-transform">
+                            Sign Up
+                        </button>
+                        <button onClick={onLogin} className="bg-white text-black font-bold rounded-full px-8 py-3 hover:bg-gray-200 hover:scale-105 transition-transform">
+                            Log In
+                        </button>
+                    </div>
+                </header>
+            );
+        }
+        
+        function SocietyCard({ society, onViewDetails, onToggleFavorite, isLiked }) {
+            return (
+                <div className="bg-[#181818] rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:bg-[#282828] hover:shadow-2xl">
+                    <div className="relative">
+                        <img 
+                            src={society.banner} 
+                            alt={`${society.name} banner`}
+                            className="w-full h-28 object-cover"
+                            onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x150/FF0000/FFFFFF?text=Error'; }}
+                        />
+                        <img 
+                            src={society.logo} 
+                            alt={`${society.name} logo`}
+                            className="absolute bottom-0 left-4 w-20 h-20 rounded-full border-4 border-[#181818] transform translate-y-1/3"
+                            onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/100x100/FF0000/FFFFFF?text=Error'; }}
+                        />
+                    </div>
+                    <div className="pt-12 p-4">
+                        <h3 className="text-white font-bold text-lg truncate">{society.name}</h3>
+                        <p className="text-sm text-[#b3b3b3] h-10 mt-1">{society.description}</p>
+                        
+                        <div className="flex justify-between items-center text-sm text-[#b3b3b3] mt-4 pt-4 border-t border-gray-700">
+                           <div className="flex items-center space-x-2">
+                               <UsersIcon className="w-4 h-4" />
+                               <span>{society.memberCount} Members</span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                               <BriefcaseIcon className="w-4 h-4" />
+                               <span>{society.councilCount} Council</span>
+                           </div>
+                        </div>
+                    </div>
+                    <div className="p-4 flex justify-between items-center">
+                        <button 
+                            onClick={() => onViewDetails(society)}
+                            className="bg-[#282828] text-white font-semibold py-2 px-4 rounded-full text-sm hover:bg-[#3a3a3a] transition-colors"
+                        >
+                            View Details
+                        </button>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onToggleFavorite(society.id); }}
+                            className={cx(
+                                "p-2 rounded-full transition-colors",
+                                isLiked ? 'text-[#1DB954]' : 'text-[#b3b3b3] hover:text-white'
+                            )}
+                        >
+                           <HeartIcon className="w-6 h-6" isLiked={isLiked} />
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function CategoryFilter({ categories, selectedCategory, onCategoryChange }) {
+            return (
+                <div className="px-6 pt-4 pb-2">
+                    <div className="flex space-x-2 overflow-x-auto pb-2">
+                        {categories.map(category => (
+                            <button
+                                key={category}
+                                onClick={() => onCategoryChange(category === "All" ? "" : category)}
+                                className={cx(
+                                    'px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 whitespace-nowrap',
+                                    selectedCategory === category || (selectedCategory === "" && category === "All")
+                                        ? 'bg-[#1DB954] text-black'
+                                        : 'bg-[#282828] text-white hover:bg-[#3a3a3a]'
+                                )}
+                            >
+                                {category}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+        
+        function EventCalendar() {
+            return (
+                 <div className="flex-1 p-6 text-white">
+                    <h1 className="text-4xl font-bold mb-6">Event Calendar</h1>
+                    <div className="bg-[#181818] rounded-lg p-6">
+                        <p className="text-[#b3b3b3]">The interactive event calendar is under construction. Check back soon to see a timeline of all upcoming society events!</p>
+                    </div>
+                </div>
+            )
+        }
+        
+        function PlaceholderPage({ title, message }) {
+            return (
+                <div className="flex-1 p-6 flex items-center justify-center">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold text-white mb-4">{title}</h2>
+                        <p className="text-[#b3b3b3] max-w-md">{message}</p>
+                    </div>
+                </div>
+            );
+        }
+
+
+        // --- MAIN APP COMPONENT ---
+
+        function App() {
+            const [activeSection, setActiveSection] = React.useState('home');
+            const [searchQuery, setSearchQuery] = React.useState('');
+            const [selectedCategory, setSelectedCategory] = React.useState('');
+            const [likedSocietyIds, setLikedSocietyIds] = React.useState([]);
+
+            const filteredSocieties = React.useMemo(() => {
+                return mockSocieties.filter(society => {
+                    const searchLower = searchQuery.toLowerCase();
+                    const matchesSearch = society.name.toLowerCase().includes(searchLower) ||
+                                          society.description.toLowerCase().includes(searchLower);
+                    
+                    const matchesCategory = !selectedCategory || society.category === selectedCategory;
+                    
+                    return matchesSearch && matchesCategory;
+                });
+            }, [searchQuery, selectedCategory]);
+            
+            const likedSocieties = React.useMemo(() => {
+                return mockSocieties.filter(society => likedSocietyIds.includes(society.id));
+            }, [likedSocietyIds]);
+
+            const handleSectionChange = (section) => setActiveSection(section);
+            const handleSearchChange = (query) => setSearchQuery(query);
+            const handleCategoryChange = (category) => setSelectedCategory(category);
+            
+            const handleToggleFavorite = (societyId) => {
+                setLikedSocietyIds(prevIds => {
+                    if (prevIds.includes(societyId)) {
+                        return prevIds.filter(id => id !== societyId); // Unlike
+                    } else {
+                        return [...prevIds, societyId]; // Like
+                    }
+                });
+            };
+            
+            // Placeholder handlers for actions
+            const handleViewDetails = (society) => console.log('View details for:', society.name);
+            const handleLogin = () => console.log('Login clicked');
+            const handleRegister = () => console.log('Register clicked');
+
+            const renderMainContent = () => {
+                switch (activeSection) {
+                    case 'home':
+                    case 'search':
+                        return (
+                            <div className="flex-1 flex flex-col">
+                                <CategoryFilter
+                                    categories={categories}
+                                    selectedCategory={selectedCategory}
+                                    onCategoryChange={handleCategoryChange}
+                                />
+                                <div className="flex-1 p-6 overflow-y-auto">
+                                    <div className="mb-8">
+                                        <h1 className="text-3xl font-bold text-white mb-2">
+                                            Discover Societies
+                                        </h1>
+                                        <p className="text-[#b3b3b3]">
+                                            Explore communities that match your interests.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                                        {filteredSocieties.map((society) => (
+                                            <SocietyCard
+                                                key={society.id}
+                                                society={society}
+                                                onViewDetails={handleViewDetails}
+                                                onToggleFavorite={handleToggleFavorite}
+                                                isLiked={likedSocietyIds.includes(society.id)}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {filteredSocieties.length === 0 && (
+                                        <div className="text-center py-12">
+                                            <p className="text-white text-lg mb-2">No societies found</p>
+                                            <p className="text-sm text-[#b3b3b3]">Try adjusting your search or filter.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    
+                    case 'calendar':
+                        return <EventCalendar />;
+                    
+                    case 'library':
+                        return <PlaceholderPage title="Your Library" message="Societies you follow and events you've registered for will appear here." />;
+                    
+                    case 'favorites':
+                        return (
+                            <div className="flex-1 p-6 overflow-y-auto">
+                                <div className="mb-8">
+                                    <h1 className="text-3xl font-bold text-white mb-2">
+                                        Liked Societies
+                                    </h1>
+                                    <p className="text-[#b3b3b3]">
+                                        Your favorite communities, all in one place.
+                                    </p>
+                                </div>
+                                {likedSocieties.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                                        {likedSocieties.map((society) => (
+                                            <SocietyCard
+                                                key={society.id}
+                                                society={society}
+                                                onViewDetails={handleViewDetails}
+                                                onToggleFavorite={handleToggleFavorite}
+                                                isLiked={likedSocietyIds.includes(society.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <PlaceholderPage title="No Liked Societies Yet" message="Click the heart icon on any society card to save it here." />
+                                )}
+                            </div>
+                        );
+                    
+                    case 'agenda':
+                        return <PlaceholderPage title="My Agenda" message="Events you've added to your agenda will appear here, helping you plan your schedule." />;
+
+                    default:
+                        return <PlaceholderPage title="404 - Not Found" message="The page you're looking for doesn't exist." />;
+                }
+            };
+
+            return (
+                <div className="flex h-screen bg-[#121212] text-white">
+                    <Sidebar 
+                        activeSection={activeSection} 
+                        onSectionChange={handleSectionChange} 
+                    />
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        <Header
+                            searchQuery={searchQuery}
+                            onSearchChange={handleSearchChange}
+                            onLogin={handleLogin}
+                            onRegister={handleRegister}
+                        />
+                        <main className="flex-1 overflow-y-auto">
+                            {renderMainContent()}
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
